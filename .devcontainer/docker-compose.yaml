@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  gogo-dev:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace
+    user: vscode
+    working_dir: /workspace
+    command:
+      sleep infinity &
+    network_mode: "host"
