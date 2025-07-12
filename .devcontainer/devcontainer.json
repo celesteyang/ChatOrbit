@@ -1,0 +1,21 @@
+{
+    "name": "Go Dev Container",
+    //   "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+    "dockerComposeFile": "docker-compose.yaml",
+    "service": "gogo-dev",
+    "workspaceFolder": "/workspace",
+    "features": {},
+    "postCreateCommand": "echo 'Container ready!'",
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash"
+            },
+            "extensions": [
+                "golang.go"
+            ]
+        }
+    },
+    "forwardPorts": [],
+    "remoteUser": "vscode"
+}
