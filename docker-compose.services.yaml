@@ -6,6 +6,7 @@ services:
       - "27019:27017"
     volumes:
       - mongo-data:/data/db
+    command: ["--quiet"]
 
   redis:
     image: redis:7
@@ -14,6 +15,56 @@ services:
       - "6381:6379"
     volumes:
       - redis-data:/data
+
+  auth-service:
+    build:
+      context: services/auth
+      dockerfile: Dockerfile.auth
+    ports:
+      - "8089:8080"
+    depends_on:
+      - mongo
+      - redis
+    environment:
+      MONGO_URL: "mongodb://mongo:27019"
+      REDIS_URL: "redis://redis:6381"
+  chat-service:
+    build:
+      context: services/chat
+      dockerfile: Dockerfile.chat
+    ports:
+      - "8088:8080"
+    depends_on:
+      - mongo
+      - redis
+    environment:
+      MONGO_URL: "mongodb://mongo:27019"
+      REDIS_URL: "redis://redis:6381"
+  gateway-service:
+    build:
+      context: services/gateway
+      dockerfile: Dockerfile.gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - chat-service
+    environment:
+      # AUTH_SERVICE_URL: "http://auth-service:8080"
+      # CHAT_SERVICE_URL: "http://chat-service:8080"
+      LOGGING_LEVEL: "error"
+  user-service:
+    build:
+      context: services/user
+      dockerfile: Dockerfile.user
+    ports:
+      - "8081:8080"
+    depends_on:
+      - mongo
+      - redis
+    environment:
+      MONGO_URL: "mongodb://mongo:27019"
+      REDIS_URL: "redis://redis:6381"
 volumes:
   mongo-data:
   redis-data:
