@@ -4,7 +4,11 @@
     "dockerComposeFile": "docker-compose.yaml",
     "service": "gogo-dev",
     "workspaceFolder": "/workspace",
-    "features": {},
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+            "version": "latest"
+        }
+    },
     "postCreateCommand": "echo 'Container ready!'",
     "customizations": {
         "vscode": {
