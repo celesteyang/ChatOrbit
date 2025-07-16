@@ -3,6 +3,8 @@ package main
 
 import (
 	"time"
+
+	"github.com/celesteyang/ChatOrbit/shared/logger"
 )
 
 func main() {
@@ -10,6 +12,8 @@ func main() {
 	// The actual implementation would go here, such as setting up routes,
 	// initializing the database connections, and starting the server.
 	println("Auth service is running...")
+
+	logger.Debug("This is a debug message")
 
 	for {
 		time.Sleep(1 * time.Second)
