@@ -4,7 +4,7 @@ package main
 import (
 	"os"
 
-	"github.com/celesteyang/ChatOrbit/tree/commonUtilities/shared/logger"
+	"github.com/celesteyang/ChatOrbit/shared/logger"
 )
 
 func main() {
