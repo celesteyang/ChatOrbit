@@ -2,20 +2,33 @@
 package main
 
 import (
-	"time"
+	"os"
 
 	"github.com/celesteyang/ChatOrbit/shared/logger"
 )
 
 func main() {
-	// This is the main entry point for the auth service.
-	// The actual implementation would go here, such as setting up routes,
-	// initializing the database connections, and starting the server.
-	println("Auth service is running...")
-
-	logger.Debug("This is a debug message")
-
-	for {
-		time.Sleep(1 * time.Second)
+	logConfig := logger.LogConfig{
+		Level:       getEnvOrDefault("LOG_LEVEL", "info"),
+		ServiceName: "gateway",
+		Environment: getEnvOrDefault("ENVIRONMENT", "development"),
 	}
+
+	if err := logger.InitLogger(logConfig); err != nil {
+		panic("Failed to initialize logger: " + err.Error())
+	}
+
+	defer logger.Sync()
+
+	logger.Info("Starting gateway service")
+	logger.Debug("Debugging information for gateway service")
+
+	// Your gateway logic here...
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }
