@@ -22,7 +22,6 @@ func main() {
 
 	logger.Info("Starting auth service")
 	logger.Debug("Debugging information for auth service")
-
 }
 
 func getEnvOrDefault(key, defaultValue string) string {
