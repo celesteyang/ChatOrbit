@@ -10,7 +10,7 @@ import (
 func main() {
 	logConfig := logger.LogConfig{
 		Level:       getEnvOrDefault("LOG_LEVEL", "info"),
-		ServiceName: "gateway",
+		ServiceName: "auth",
 		Environment: getEnvOrDefault("ENVIRONMENT", "development"),
 	}
 
@@ -20,10 +20,8 @@ func main() {
 
 	defer logger.Sync()
 
-	logger.Info("Starting gateway service")
-	logger.Debug("Debugging information for gateway service")
-
-	// Your gateway logic here...
+	logger.Info("Starting auth service")
+	logger.Debug("Debugging information for auth service")
 }
 
 func getEnvOrDefault(key, defaultValue string) string {
