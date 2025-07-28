@@ -6,7 +6,8 @@ RUN go build -o app .
 FROM alpine:3.19
 WORKDIR /app
 COPY --from=builder /app/app .
-CMD ["./app"]
 
 ENV LOGGING_LEVEL=info
-EXPOSE 8089
+ENV PORT=8080
+EXPOSE 8080
+CMD ["./app"]
