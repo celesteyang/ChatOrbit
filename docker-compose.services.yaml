@@ -26,7 +26,7 @@ services:
       - mongo
       - redis
     environment:
-      MONGO_URL: "mongodb://mongo:27019"
+      MONGO_URL: "mongodb://mongo:27017"
       REDIS_URL: "redis://redis:6381"
   chat-service:
     build:
