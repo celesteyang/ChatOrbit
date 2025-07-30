@@ -1,0 +1,28 @@
+basePath: /
+host: localhost:8083
+info:
+  contact: {}
+  description: This is the authentication service for ChatOrbit.
+  title: Auth Service API
+  version: "1.0"
+paths:
+  /test:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint is used to test if the service is up
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Test the auth service
+      tags:
+      - Health
+schemes:
+- http
+swagger: "2.0"

@@ -1,8 +1,15 @@
 // OAuth2 login and user session management
+// @title Auth Service API
+// @version 1.0
+// @description This is the authentication service for ChatOrbit.
+// @host localhost:8083
+// @BasePath /
+// @schemes http
 package main
 
 import (
 	"context"
+	_ "auth/docs"
 	"os"
 	"time"
 
@@ -11,7 +18,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
+	"github.com/celesteyang/ChatOrbit/shared/swagger"
 )
+
+// import docs
 
 func main() {
 	logConfig := logger.LogConfig{
@@ -23,6 +33,13 @@ func main() {
 	if err := logger.InitLogger(logConfig); err != nil {
 		panic("Failed to initialize logger: " + err.Error())
 	}
+
+	r := gin.Default()
+
+	// 初始化 Swagger
+	swagger.InitSwagger(r, "Auth Service")
+
+	r.Run(":8083")
 
 	defer logger.Sync()
 
@@ -49,6 +66,24 @@ func main() {
 	if err := r.Run(":8080"); err != nil {
 		logger.Fatal("Failed to start server", zap.Error(err))
 	}
+	logger.Debug("Debugging information for auth service")
+
+	r.GET("/test", testHandler)
+
+}
+
+// @Summary      Test the auth service
+// @Description  This endpoint is used to test if the service is up
+// @Tags         Health
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Router       /test [get]
+func testHandler(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "test",
+	})
+
 }
 
 func getEnvOrDefault(key, defaultValue string) string {
