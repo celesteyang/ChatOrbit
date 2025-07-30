@@ -1,4 +1,10 @@
 // OAuth2 login and user session management
+// @title Auth Service API
+// @version 1.0
+// @description This is the authentication service for ChatOrbit.
+// @host localhost:8083
+// @BasePath /
+// @schemes http
 package main
 
 import (
@@ -34,6 +40,23 @@ func main() {
 
 	logger.Info("Starting auth service")
 	logger.Debug("Debugging information for auth service")
+
+	r.GET("/test", testHandler)
+
+}
+
+// @Summary      Test the auth service
+// @Description  This endpoint is used to test if the service is up
+// @Tags         Health
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Router       /test [get]
+func testHandler(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "test",
+	})
+
 }
 
 func getEnvOrDefault(key, defaultValue string) string {
