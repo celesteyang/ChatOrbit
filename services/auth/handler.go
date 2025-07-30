@@ -13,6 +13,14 @@ type RegisterRequest struct {
 	Password string `json:"password" binding:"required,min=6"`
 }
 
+// @Summary      Register a new user
+// @Description  Register a new user with email, username, and password
+// @Tags         Register
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Router       /register [post]
+// @Param        request body RegisterRequest true "Register request body"
 func RegisterHandler(c *gin.Context) {
 	var req RegisterRequest
 
@@ -34,6 +42,14 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required,min=6"`
 }
 
+// @Summary      Login
+// @Description  Login a user with email and password
+// @Tags         Login
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Router       /login [post]
+// @Param        request body LoginRequest true "Login request body"
 func LoginHandler(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
