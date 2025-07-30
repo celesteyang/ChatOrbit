@@ -8,17 +8,17 @@
 package main
 
 import (
-	"context"
 	_ "auth/docs"
+	"context"
 	"os"
 	"time"
 
 	"github.com/celesteyang/ChatOrbit/shared/logger"
+	"github.com/celesteyang/ChatOrbit/shared/swagger"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
-	"github.com/celesteyang/ChatOrbit/shared/swagger"
 )
 
 // import docs
@@ -39,8 +39,6 @@ func main() {
 	// 初始化 Swagger
 	swagger.InitSwagger(r, "Auth Service")
 
-	r.Run(":8083")
-
 	defer logger.Sync()
 
 	logger.Info("Starting auth service")
@@ -59,9 +57,9 @@ func main() {
 	db := client.Database("chatorbit")
 	InitUserCollection(db)
 
-	r := gin.Default()
 	r.POST("/register", RegisterHandler)
 	r.POST("/login", LoginHandler)
+
 	logger.Info("Auth service is running on port 8080")
 	if err := r.Run(":8080"); err != nil {
 		logger.Fatal("Failed to start server", zap.Error(err))
@@ -69,7 +67,6 @@ func main() {
 	logger.Debug("Debugging information for auth service")
 
 	r.GET("/test", testHandler)
-
 }
 
 // @Summary      Test the auth service
