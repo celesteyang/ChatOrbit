@@ -2,7 +2,7 @@
 // @title Auth Service API
 // @version 1.0
 // @description This is the authentication service for ChatOrbit.
-// @host localhost:8083
+// @host localhost:8080
 // @BasePath /
 // @schemes http
 package main
@@ -15,6 +15,7 @@ import (
 
 	"github.com/celesteyang/ChatOrbit/shared/logger"
 	"github.com/celesteyang/ChatOrbit/shared/swagger"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -58,8 +59,18 @@ func main() {
 	db := client.Database("chatorbit")
 	InitUserCollection(db)
 
+	// CORS 設定，允許前端跨域並攜帶 Cookie
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"}, // 前端網址
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true, // 允許 Cookie
+	}))
+
 	r.POST("/register", RegisterHandler)
 	r.POST("/login", LoginHandler)
+	r.POST("/change-password", AuthMiddleware(), ChangePasswordHandler)
+	r.POST("/logout", AuthMiddleware(), LogoutHandler)
 
 	logger.Info("Auth service is running on port 8080")
 	if err := r.Run(":8080"); err != nil {
