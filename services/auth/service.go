@@ -107,6 +107,6 @@ func ChangePassword(userID string, oldPassword, newPassword string) error {
 }
 
 // Register Test
-// curl -X POST http://localhost:8080/register   -H "Content-Type: application/json"   -d '{"email":"abc@example.com", "username":"test", "password":"12345678"}'
+// curl -X POST http://localhost:8089/register   -H "Content-Type: application/json"   -d '{"email":"abc@example.com", "username":"test", "password":"12345678"}'
 // Login Test
-// curl -X POST http://localhost:8080/login   -H "Content-Type: application/json"   -d '{"email":"abc@example.com", "password":"12345678"}'
+// curl -X POST http://localhost:8089/login   -H "Content-Type: application/json"   -d '{"email":"abc@example.com", "password":"12345678"}'

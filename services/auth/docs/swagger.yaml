@@ -54,7 +54,7 @@ definitions:
     - password
     - username
     type: object
-host: localhost:8080
+host: localhost:8089
 info:
   contact: {}
   description: This is the authentication service for ChatOrbit.

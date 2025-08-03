@@ -2,7 +2,7 @@
 // @title Auth Service API
 // @version 1.0
 // @description This is the authentication service for ChatOrbit.
-// @host localhost:8080
+// @host localhost:8089
 // @BasePath /
 // @schemes http
 package main
@@ -10,6 +10,7 @@ package main
 import (
 	_ "auth/docs"
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -30,6 +31,10 @@ func main() {
 		ServiceName: "auth",
 		Environment: getEnvOrDefault("ENVIRONMENT", "development"),
 	}
+	servicePort := getEnvOrDefault("PORT", "")
+	if servicePort == "" {
+		logger.Fatal("PORT environment variable is not set")
+	}
 
 	if err := logger.InitLogger(logConfig); err != nil {
 		panic("Failed to initialize logger: " + err.Error())
@@ -44,7 +49,11 @@ func main() {
 
 	logger.Info("Starting auth service")
 	// 連接 MongoDB
-	mongoURI := getEnvOrDefault("MONGO_URL", "mongodb://localhost:27017")
+	mongoURI := getEnvOrDefault("MONGO_URL", "")
+	if mongoURI == "" {
+		logger.Fatal("MONGO_URL environment variable is not set")
+	}
+
 	client, err := mongo.NewClient(options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		logger.Fatal("Mongo client creation failed", zap.Error(err))
@@ -71,8 +80,8 @@ func main() {
 	r.POST("/change-password", AuthMiddleware(), ChangePasswordHandler)
 	r.POST("/logout", AuthMiddleware(), LogoutHandler)
 
-	logger.Info("Auth service is running on port 8080")
-	if err := r.Run(":8080"); err != nil {
+	logger.Info(fmt.Sprintf("Auth service is running on port %s", servicePort))
+	if err := r.Run(":" + servicePort); err != nil {
 		logger.Fatal("Failed to start server", zap.Error(err))
 	}
 	logger.Debug("Debugging information for auth service")
