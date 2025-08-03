@@ -8,6 +8,15 @@ services:
       - mongo-data:/data/db
     command: ["--quiet"]
 
+  mongo-express:
+    image: mongo-express:1.0.2-20-alpine3.19
+    restart: unless-stopped
+    ports:
+      - "8091:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: "mongo"
+      ME_CONFIG_MONGODB_PORT: "27017"
+
   redis:
     image: redis:7
     restart: unless-stopped
@@ -16,18 +25,19 @@ services:
     volumes:
       - redis-data:/data
 
-  auth-service:
-    build:
-      context: services/auth
-      dockerfile: Dockerfile.auth
-    ports:
-      - "8089:8080"
-    depends_on:
-      - mongo
-      - redis
-    environment:
-      MONGO_URL: "mongodb://mongo:27019"
-      REDIS_URL: "redis://redis:6381"
+  # auth-service:
+  #   build:
+  #     context: services/auth
+  #     dockerfile: Dockerfile.auth
+  #   ports:
+  #     - "8089:8089"
+  #   depends_on:
+  #     - mongo
+  #     - redis
+  #   environment:
+  #     MONGO_URL: "mongodb://mongo:27017"
+  #     REDIS_URL: "redis://redis:6381"
+
   chat-service:
     build:
       context: services/chat
@@ -45,9 +55,9 @@ services:
       context: services/gateway
       dockerfile: Dockerfile.gateway
     ports:
-      - "8080:8080"
+      - "8099:8080"
     depends_on:
-      - auth-service
+      # - auth-service
       - chat-service
     environment:
       # AUTH_SERVICE_URL: "http://auth-service:8080"
