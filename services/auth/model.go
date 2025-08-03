@@ -15,7 +15,10 @@ type User struct {
 	Username     string             `bson:"username,omitempty"`
 	Email        string             `bson:"email" json:"email"`
 	PasswordHash string             `bson:"password_hash,omitempty" json:"-"`
-	CreatedAt    time.Time          `bson:"created_at" json:"created_at"`
+	CreateTime   time.Time          `bson:"created_at" json:"created_at"`
+	LoginTime    time.Time          `bson:"login_time,omitempty" json:"login_time,omitempty"`
+	IPAddress    string             `bson:"login_ip,omitempty" json:"login_ip,omitempty"`
+	UpdateTime   time.Time          `bson:"update_time,omitempty" json:"update_time,omitempty"`
 }
 
 var userCollection *mongo.Collection
@@ -43,4 +46,28 @@ func FindUserByEmail(email string) (*User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func UpdateUserPassword(userID primitive.ObjectID, newHashedPwd string) error {
+	filter := bson.M{"_id": userID}
+	update := bson.M{
+		"$set": bson.M{
+			"password_hash": newHashedPwd,
+			"update_time":   time.Now(),
+		},
+	}
+	_, err := userCollection.UpdateOne(context.TODO(), filter, update)
+	return err
+}
+
+func UpdateLoginInfo(userID primitive.ObjectID, ip string) error {
+	filter := bson.M{"_id": userID}
+	update := bson.M{
+		"$set": bson.M{
+			"login_time": time.Now(),
+			"login_ip":   ip,
+		},
+	}
+	_, err := userCollection.UpdateOne(context.TODO(), filter, update)
+	return err
 }
