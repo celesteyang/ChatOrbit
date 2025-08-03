@@ -12,6 +12,11 @@ definitions:
     - new_password
     - old_password
     type: object
+  main.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
   main.LoginRequest:
     properties:
       email:
@@ -22,6 +27,16 @@ definitions:
     required:
     - email
     - password
+    type: object
+  main.LoginResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  main.MessageResponse:
+    properties:
+      message:
+        type: string
     type: object
   main.RegisterRequest:
     properties:
@@ -64,9 +79,15 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/main.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
       summary: Change Password
       tags:
       - ChangePassword
@@ -88,9 +109,15 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/main.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
       summary: Login
       tags:
       - Login
@@ -105,9 +132,7 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/main.MessageResponse'
       summary: Logout
       tags:
       - Logout
@@ -129,9 +154,11 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/main.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
       summary: Register a new user
       tags:
       - Register
