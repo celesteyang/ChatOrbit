@@ -37,6 +37,7 @@ services:
   #   environment:
   #     MONGO_URL: "mongodb://mongo:27017"
   #     REDIS_URL: "redis://redis:6381"
+  #     JWT_SECRET: "jwtTestY&771765454330an"
 
   chat-service:
     build:

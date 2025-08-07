@@ -66,9 +66,28 @@ The `--build` is important to rebuild any services that might have changed since
 To develop a service independently from the other services, it can be beneficial for fast development to be able to directly run the service with `go`. To do this, comment out the relevant service in the `docker-compose.services.yaml` file.
 
 ### The Auth service
+
 For example, for the `auth` service, we will run directly with `go` inside the dev-container as follows:
 ```bash
-MONGO_URL=mongodb://localhost:27019 PORT=8089 go run .
+JWT_SECRET="your_secret_key" MONGO_URL=mongodb://localhost:27019 PORT=8089 go run .
+```
+
+#### Example API Usage
+
+> Note: These are manual test commands, not using Swagger.
+
+**Register Test**
+```bash
+curl -X POST http://localhost:8089/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"abc@example.com", "username":"test", "password":"12345678"}'
+```
+
+**Login Test**
+```bash
+curl -X POST http://localhost:8089/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"abc@example.com", "password":"12345678"}'
 ```
 
 ## MongoDB
