@@ -32,6 +32,8 @@ definitions:
     properties:
       token:
         type: string
+      user:
+        $ref: '#/definitions/main.User'
     type: object
   main.MessageResponse:
     properties:
@@ -53,6 +55,23 @@ definitions:
     - email
     - password
     - username
+    type: object
+  main.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      login_ip:
+        type: string
+      login_time:
+        type: string
+      update_time:
+        type: string
+      username:
+        type: string
     type: object
 host: localhost:8089
 info:

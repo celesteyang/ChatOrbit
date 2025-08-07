@@ -40,23 +40,23 @@ func RegisterUser(email, username string, password string, ip string) error {
 	return InsertUser(user)
 }
 
-func LoginUser(email, password string) (string, error) {
+func LoginUser(email, password string) (string, *User, error) {
 	user, err := FindUserByEmail(email)
 	if err != nil {
-		return "", errors.New("Email is incorrect.")
+		return "", nil, errors.New("Email is incorrect.")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 	if err != nil {
-		return "", errors.New("Password is incorrect.")
+		return "", nil, errors.New("Password is incorrect.")
 	}
 
 	token, err := GenerateJWT(user.ID.Hex(), user.Email)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return token, nil
+	return token, user, nil
 }
 
 var jwtSecret = []byte("jwtTestY&771765454330an")

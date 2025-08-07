@@ -244,6 +244,9 @@ const docTemplate = `{
             "properties": {
                 "token": {
                     "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/main.User"
                 }
             }
         },
@@ -274,6 +277,32 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 2
+                }
+            }
+        },
+        "main.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "login_ip": {
+                    "type": "string"
+                },
+                "login_time": {
+                    "type": "string"
+                },
+                "update_time": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         }

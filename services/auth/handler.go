@@ -54,6 +54,7 @@ type LoginRequest struct {
 }
 type LoginResponse struct {
 	Token string `json:"token"`
+	User  User   `json:"user"`
 }
 
 // @Summary      Login
@@ -73,16 +74,19 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	token, err := LoginUser(req.Email, req.Password)
+	token, user, err := LoginUser(req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: err.Error()})
 		return
 	}
 	// Set JWT in HttpOnly Cookie
-	// c.SetCookie("token", token, 3600*24, "/", "localhost", true, true)
+	c.SetCookie("token", token, 3600*24, "/", "localhost", true, true)
 	// without frontend cookie
-	c.SetCookie("token", token, 3600*24, "/", "", false, true)
-	c.JSON(200, gin.H{"token": token})
+	// c.SetCookie("token", token, 3600*24, "/", "", false, true)
+	c.JSON(http.StatusOK, gin.H{
+		"token": token,
+		"user":  user,
+	})
 }
 
 type ChangePasswordRequest struct {
@@ -130,8 +134,8 @@ func ChangePasswordHandler(c *gin.Context) {
 // @Success      200  {object}  MessageResponse
 // @Router       /logout [post]
 func LogoutHandler(c *gin.Context) {
-	// c.SetCookie("token", "", -1, "/", "localhost", true, true)
+	c.SetCookie("token", "", -1, "/", "localhost", true, true)
 	// without frontend cookie
-	c.SetCookie("token", "", -1, "/", "", false, true)
+	// c.SetCookie("token", "", -1, "/", "", false, true)
 	c.JSON(http.StatusOK, MessageResponse{Message: "Logged out successfully"})
 }
