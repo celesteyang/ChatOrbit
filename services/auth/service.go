@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"errors"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -59,7 +60,15 @@ func LoginUser(email, password string) (string, error) {
 	return token, nil
 }
 
-var jwtSecret = []byte("jwtTestY&771765454330an")
+var jwtSecret []byte
+
+func init() {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		panic("JWT_SECRET environment variable not set")
+	}
+	jwtSecret = []byte(secret)
+}
 
 func GenerateJWT(userID, email string) (string, error) {
 	claims := jwt.MapClaims{
@@ -105,8 +114,3 @@ func ChangePassword(userID string, oldPassword, newPassword string) error {
 	err = UpdateUserPassword(uid, string(newHashed))
 	return err
 }
-
-// Register Test
-// curl -X POST http://localhost:8089/register   -H "Content-Type: application/json"   -d '{"email":"abc@example.com", "username":"test", "password":"12345678"}'
-// Login Test
-// curl -X POST http://localhost:8089/login   -H "Content-Type: application/json"   -d '{"email":"abc@example.com", "password":"12345678"}'
