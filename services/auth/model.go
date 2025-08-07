@@ -23,32 +23,37 @@ type User struct {
 
 var userCollection *mongo.Collection
 
+// Set the MongoDB collection for users.
 func InitUserCollection(db *mongo.Database) {
 	userCollection = db.Collection("users")
 }
 
-func IsEmailExists(email string) (bool, error) {
+// Check if the given email is already registered.
+func IsEmailExists(ctx context.Context, email string) (bool, error) {
 	filter := bson.M{"email": email}
-	count, err := userCollection.CountDocuments(context.TODO(), filter)
+	count, err := userCollection.CountDocuments(ctx, filter)
 	return count > 0, err
 }
 
-func InsertUser(user User) error {
-	_, err := userCollection.InsertOne(context.TODO(), user)
+// Insert a new user into the database.
+func InsertUser(ctx context.Context, user User) error {
+	_, err := userCollection.InsertOne(ctx, user)
 	return err
 }
 
-func FindUserByEmail(email string) (*User, error) {
+// Find user by email.
+func FindUserByEmail(ctx context.Context, email string) (*User, error) {
 	filter := bson.M{"email": email}
 	var user User
-	err := userCollection.FindOne(context.TODO(), filter).Decode(&user)
+	err := userCollection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
-func UpdateUserPassword(userID primitive.ObjectID, newHashedPwd string) error {
+// Update the password.
+func UpdateUserPassword(ctx context.Context, userID primitive.ObjectID, newHashedPwd string) error {
 	filter := bson.M{"_id": userID}
 	update := bson.M{
 		"$set": bson.M{
@@ -56,11 +61,12 @@ func UpdateUserPassword(userID primitive.ObjectID, newHashedPwd string) error {
 			"update_time":   time.Now(),
 		},
 	}
-	_, err := userCollection.UpdateOne(context.TODO(), filter, update)
+	_, err := userCollection.UpdateOne(ctx, filter, update)
 	return err
 }
 
-func UpdateLoginInfo(userID primitive.ObjectID, ip string) error {
+// Update the login info.
+func UpdateLoginInfo(ctx context.Context, userID primitive.ObjectID, ip string) error {
 	filter := bson.M{"_id": userID}
 	update := bson.M{
 		"$set": bson.M{
@@ -68,6 +74,17 @@ func UpdateLoginInfo(userID primitive.ObjectID, ip string) error {
 			"login_ip":   ip,
 		},
 	}
-	_, err := userCollection.UpdateOne(context.TODO(), filter, update)
+	_, err := userCollection.UpdateOne(ctx, filter, update)
 	return err
+}
+
+// Find user by ObjectID.
+func FindUserByID(ctx context.Context, userID primitive.ObjectID) (*User, error) {
+	filter := bson.M{"_id": userID}
+	var user User
+	err := userCollection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
