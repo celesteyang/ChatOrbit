@@ -10,7 +10,6 @@ package main
 import (
 	_ "auth/docs"
 	"context"
-	"fmt"
 	"os"
 	"time"
 
@@ -81,27 +80,8 @@ func main() {
 	r.POST("/change-password", AuthMiddleware(), ChangePasswordHandler)
 	r.POST("/logout", AuthMiddleware(), LogoutHandler)
 
-	logger.Info(fmt.Sprintf("Auth service is running on port %s", servicePort))
-	if err := r.Run(":" + servicePort); err != nil {
-		logger.Fatal("Failed to start server", zap.Error(err))
-	}
 	logger.Debug("Debugging information for auth service")
-
-	r.GET("/test", testHandler)
-}
-
-// @Summary      Test the auth service
-// @Description  This endpoint is used to test if the service is up
-// @Tags         Health
-// @Accept       json
-// @Produce      json
-// @Success      200  {object}  map[string]string
-// @Router       /test [get]
-func testHandler(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "test",
-	})
-
+	r.Run()
 }
 
 func getEnvOrDefault(key, defaultValue string) string {

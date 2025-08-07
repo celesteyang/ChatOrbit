@@ -4,18 +4,32 @@ package main
 import (
 	"context"
 	"errors"
-	"os"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func RegisterUser(email, username string, password string, ip string) error {
+// RegisterUser handles the user registration process.
+//
+// It first checks if the email already exists in the database. If not,
+// it hashes the user's password using bcrypt, creates a new User object,
+// and inserts it into the database.
+//
+// Parameters:
+//   ctx: The context for the request.
+//   email: The email address for the new user.
+//   username: The username for the new user.
+//   password: The plaintext password.
+//   ip: The user's IP address.
+//
+// Returns:
+//   An error if the email is already registered, password hashing fails,
+//   or the database insertion fails.
+
+func RegisterUser(ctx context.Context, email, username string, password string, ip string) error {
 	// Check if email already exists
-	exists, err := IsEmailExists(email)
+	exists, err := IsEmailExists(ctx, email)
 	if err != nil {
 		return err
 	}
@@ -38,11 +52,26 @@ func RegisterUser(email, username string, password string, ip string) error {
 		IPAddress:    ip,
 	}
 
-	return InsertUser(user)
+	return InsertUser(ctx, user)
 }
 
-func LoginUser(email, password string) (string, error) {
-	user, err := FindUserByEmail(email)
+// LoginUser authenticates a user by their email and password.
+//
+// It first finds a user by their email, then compares the provided password
+// with the stored hashed password. If authentication is successful,
+// it generates and returns a new JWT.
+//
+// Parameters:
+//   ctx: The context for the request.
+//   email: The user's email address.
+//   password: The plaintext password provided by the user.
+//
+// Returns:
+//   A JWT string if the login is successful.
+//   An error if the user is not found, the password is incorrect, or token generation fails.
+
+func LoginUser(ctx context.Context, email, password string) (string, error) {
+	user, err := FindUserByEmail(ctx, email)
 	if err != nil {
 		return "", errors.New("Email is incorrect.")
 	}
@@ -60,43 +89,29 @@ func LoginUser(email, password string) (string, error) {
 	return token, nil
 }
 
-var jwtSecret []byte
+// ChangePassword handles updating a user's password.
+//
+// It first validates the userID, then retrieves the user from the database.
+// It verifies the old password against the stored hash. If it matches,
+// it hashes the new password and updates the user's record in the database.
+//
+// Parameters:
+//   ctx: The context for the request.
+//   userID: The unique ID of the user to change the password for.
+//   oldPassword: The user's current plaintext password.
+//   newPassword: The new plaintext password.
+//
+// Returns:
+//   An error if the userID is invalid, the user is not found, the old password
+//   is incorrect, or the database update fails.
 
-func init() {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		panic("JWT_SECRET environment variable not set")
-	}
-	jwtSecret = []byte(secret)
-}
-
-func GenerateJWT(userID, email string) (string, error) {
-	claims := jwt.MapClaims{
-		"user_id": userID,
-		"email":   email,
-		"exp":     time.Now().Add(time.Hour * 24).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
-}
-
-func FindUserByEmailByID(userID primitive.ObjectID) (*User, error) {
-	filter := bson.M{"_id": userID}
-	var user User
-	err := userCollection.FindOne(context.TODO(), filter).Decode(&user)
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
-func ChangePassword(userID string, oldPassword, newPassword string) error {
+func ChangePassword(ctx context.Context, userID string, oldPassword, newPassword string) error {
 	uid, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return errors.New("Invalid user account ID.")
 	}
 
-	user, err := FindUserByEmailByID(uid)
+	user, err := FindUserByID(ctx, uid)
 	if err != nil {
 		return errors.New("User not found")
 	}
@@ -111,6 +126,6 @@ func ChangePassword(userID string, oldPassword, newPassword string) error {
 		return err
 	}
 
-	err = UpdateUserPassword(uid, string(newHashed))
+	err = UpdateUserPassword(ctx, uid, string(newHashed))
 	return err
 }

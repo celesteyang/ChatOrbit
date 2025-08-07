@@ -1,6 +1,6 @@
 package main
 
-// HTTP/WebSocket handlers for auth service
+// HTTP handlers for auth service
 import (
 	"net/http"
 
@@ -40,7 +40,7 @@ func RegisterHandler(c *gin.Context) {
 	// Get client IP address
 	ip := c.ClientIP()
 
-	if err := RegisterUser(req.Email, req.Username, req.Password, ip); err != nil {
+	if err := RegisterUser(c.Request.Context(), req.Email, req.Username, req.Password, ip); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
@@ -73,7 +73,7 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	token, err := LoginUser(req.Email, req.Password)
+	token, err := LoginUser(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: err.Error()})
 		return
@@ -113,7 +113,7 @@ func ChangePasswordHandler(c *gin.Context) {
 		return
 	}
 
-	err := ChangePassword(userID, req.OldPassword, req.NewPassword)
+	err := ChangePassword(c.Request.Context(), userID, req.OldPassword, req.NewPassword)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
