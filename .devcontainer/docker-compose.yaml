@@ -5,7 +5,7 @@ services:
       context: ..
       dockerfile: Dockerfile
     volumes:
-      - ..:/workspace
+      - ..:/workspace:rw
     user: vscode
     working_dir: /workspace
     command:
