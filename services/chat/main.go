@@ -3,9 +3,9 @@ package main
 
 import (
 	"os"
-	"time"
 
 	"github.com/celesteyang/ChatOrbit/shared/logger"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -25,13 +25,16 @@ func main() {
 
 	defer logger.Sync()
 
-	logger.Info("Starting chat service")
-	logger.Debug("Debugging information for chat service")
-	println("Chat service is running...")
+	r := gin.Default()
+	r.GET("/test", ChatWebSocketHandler)
 
-	for {
-		time.Sleep(1 * time.Second)
-	}
+	// logger.Info("Starting chat service")
+	// logger.Debug("Debugging information for chat service")
+	// println("Chat service is running...")
+
+	// for {
+	// 	time.Sleep(1 * time.Second)
+	// }
 }
 
 func getEnvOrDefault(key, defaultValue string) string {

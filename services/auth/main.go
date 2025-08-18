@@ -22,8 +22,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// import docs
-
 func main() {
 	logConfig := logger.LogConfig{
 		Level:       getEnvOrDefault("LOG_LEVEL", "info"),
