@@ -90,6 +90,43 @@ curl -X POST http://localhost:8089/login \
   -d '{"email":"abc@example.com", "password":"12345678"}'
 ```
 
+### The Chat Service
+
+For example, for the `auth` service, we will run directly with `go` inside the dev-container as follows:
+```bash
+JWT_SECRET="your_secret_key" MONGO_URL="mongodb://localhost:27019" REDIS_ADDR="localhost:6381" PORT=8089 go run .
+```
+
+#### WebSocket Testing with `wscat`
+After logging in with the auth service and getting a JWT, you can test the WebSocket connection with `wscat`.
+```bash
+npm install -g wscat
+```
+```bash
+wscat -c "ws://localhost:8090/ws/chat?token=<YOUR_JWT_TOKEN>"
+```
+**Verifying Real-Time Broadcast with Multiple Terminals**
+To confirm that real-time messaging is working correctly, we need to simulate multiple users. This tests the WebSocket connections and the Redis Pub/Sub broadcast functionality.
+
+1. Obtain a Second JWT Token
+Use auth service to get a unique JWT for a second user.
+2. Establish Connections
+Open two separate terminal windows and connect to the chat service, each with a different user's JWT.
+```bash
+# Terminal 1: User 1's connection
+wscat -c "ws://localhost:8090/ws/chat?token=<USER_1_JWT_TOKEN>"
+```
+```bash
+# Terminal 2: User 2's connection
+wscat -c "ws://localhost:8090/ws/chat?token=<USER_2_JWT_TOKEN>"
+```
+3. Test Real-Time Communication
+Send a JSON message from Terminal 1. we should see it appear instantly in Terminal 2, and vice versa.
+```json
+{"room_id": "general", "content": "Hello, this is a test message!"}
+{"room_id": "general", "content": "Hi there! Got your message instantly."}
+```
+
 ## MongoDB
 
 ### CLI
