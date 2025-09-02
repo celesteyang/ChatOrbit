@@ -4,11 +4,7 @@
     "dockerComposeFile": "docker-compose.yaml",
     "service": "gogo-dev",
     "workspaceFolder": "/workspace",
-    "features": {
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {
-            "version": "latest"
-        }
-    },
+    // Removed Docker-in-Docker feature for compatibility with Debian trixie
     "postCreateCommand": "echo 'Container ready!'",
     "customizations": {
         "vscode": {

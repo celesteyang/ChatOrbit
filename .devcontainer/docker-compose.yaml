@@ -10,4 +10,3 @@ services:
     working_dir: /workspace
     command:
       sleep infinity &
-    network_mode: "host"

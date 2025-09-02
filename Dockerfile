@@ -15,9 +15,11 @@ RUN apt-get update && apt-get install -y curl gnupg \
  && apt-get update && apt-get install -y mongodb-mongosh \
  && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m vscode
+RUN useradd -m -s /bin/bash -G sudo vscode \
+    && echo 'vscode ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 ENV GOPATH=/home/vscode/go
+ENV PATH=$PATH:/home/vscode/go/bin
 RUN mkdir -p /home/vscode/go && chown -R vscode:vscode /home/vscode/go
 
 WORKDIR /workspace
