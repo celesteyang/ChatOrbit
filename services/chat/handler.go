@@ -70,3 +70,29 @@ func ChatWebSocketHandler(hub *Hub) gin.HandlerFunc {
 		go HandleClientMessages(client)
 	}
 }
+
+// @Summary Get chat history
+// @Description Retrieves chat messages from a specific room.
+// @Tags Chat
+// @Accept json
+// @Produce json
+// @Param roomID path string true "Chat Room ID"
+// @Success 200 {array} Message
+// @Router /chat/history/{roomID} [get]
+func GetChatHistoryHandler(c *gin.Context) {
+	roomID := c.Param("roomID")
+	if roomID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Room ID is required"})
+		return
+	}
+
+	// Call the model function to get messages.
+	// You might want to add pagination (e.g., limit, offset) here.
+	messages, err := GetMessagesByRoom(c.Request.Context(), roomID, 50)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve messages"})
+		return
+	}
+
+	c.JSON(http.StatusOK, messages)
+}

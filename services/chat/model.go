@@ -46,3 +46,49 @@ func InsertMessage(ctx context.Context, msg *Message) error {
 	_, err := messageCollection.InsertOne(ctx, msg)
 	return err
 }
+
+// func GetMessages(ctx context.Context, roomID string) ([]Message, error) {
+// 	cursor, err := messageCollection.Find(ctx, bson.M{"room_id": roomID})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var messages []Message
+// 	for cursor.Next(ctx) {
+// 		var msg Message
+// 		if err := cursor.Decode(&msg); err != nil {
+// 			return nil, err
+// 		}
+// 		messages = append(messages, msg)
+// 	}
+// 	return messages, nil
+// }
+
+// GetMessagesByRoom retrieves chat messages for a specific room with pagination.
+// It sorts messages by timestamp in descending order (newest first).
+func GetMessagesByRoom(ctx context.Context, roomID string, limit int64) ([]Message, error) {
+	// Find options: sort by timestamp descending, and limit the results.
+	findOptions := options.Find().
+		SetSort(bson.D{{Key: "timestamp", Value: -1}}).
+		SetLimit(limit)
+
+	cursor, err := messageCollection.Find(ctx, bson.M{"room_id": roomID}, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var messages []Message
+	if err = cursor.All(ctx, &messages); err != nil {
+		return nil, err
+	}
+
+	// Reverse the order to get oldest first (for UI display)
+	// You might not need this depending on your frontend
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
+
+	return messages, nil
+}
