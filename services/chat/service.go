@@ -151,3 +151,10 @@ func HandleClientWrites(c *client) {
 		}
 	}
 }
+
+// Reverse the order to get oldest first (for UI display)
+func ReverseMessages(messages []Message) {
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
+}
