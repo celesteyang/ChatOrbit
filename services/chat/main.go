@@ -2,17 +2,19 @@
 // @title Chat Service API
 // @version 1.0
 // @description  A scalable real-time chat backend for live streams.
-// @host localhost:8090
+// @host localhost:8088
 // @BasePath /
 // @schemes http
 package main
 
 import (
+	_ "chat/docs"
 	"context"
 	"os"
 	"time"
 
 	"github.com/celesteyang/ChatOrbit/shared/logger"
+	"github.com/celesteyang/ChatOrbit/shared/swagger"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -73,7 +75,7 @@ func main() {
 	logger.Info("Starting chat service")
 
 	r := gin.Default()
-	// swagger.InitSwagger(r, "Chat Service")
+	swagger.InitSwagger(r, "Chat Service")
 	hub := NewHub(redisClient)
 	// hub instance run in a separate goroutine
 	go hub.Run()

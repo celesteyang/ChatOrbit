@@ -13,7 +13,7 @@ definitions:
       user_id:
         type: string
     type: object
-host: localhost:8090
+host: localhost:8088
 info:
   contact: {}
   description: A scalable real-time chat backend for live streams.

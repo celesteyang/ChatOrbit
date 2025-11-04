@@ -44,7 +44,7 @@ func main() {
 
 	defer logger.Sync()
 
-	logger.Info("Starting auth service")
+	logger.Info("Starting auth service....")
 
 	// 連接 MongoDB
 	mongoURI := getEnvOrDefault("MONGO_URL", "")

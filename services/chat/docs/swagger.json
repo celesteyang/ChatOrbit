@@ -9,7 +9,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "localhost:8090",
+    "host": "localhost:8088",
     "basePath": "/",
     "paths": {
         "/chat/history/{roomID}": {

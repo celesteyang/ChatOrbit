@@ -78,15 +78,13 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8090",
+	Host:             "localhost:8088",
 	BasePath:         "/",
 	Schemes:          []string{"http"},
 	Title:            "Chat Service API",
 	Description:      "A scalable real-time chat backend for live streams.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	LeftDelim:        "{{",
-	RightDelim:       "}}",
 }
 
 func init() {

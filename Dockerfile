@@ -25,3 +25,5 @@ ENV PATH=$PATH:/home/vscode/go/bin
 RUN mkdir -p /home/vscode/go && chown -R vscode:vscode /home/vscode/go
 
 WORKDIR /workspace
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s CMD curl -f http://localhost:8080/health || exit 1
