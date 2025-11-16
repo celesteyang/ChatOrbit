@@ -22,8 +22,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// import docs
-
 func main() {
 	logConfig := logger.LogConfig{
 		Level:       getEnvOrDefault("LOG_LEVEL", "info"),
@@ -46,7 +44,7 @@ func main() {
 
 	defer logger.Sync()
 
-	logger.Info("Starting auth service")
+	logger.Info("Starting auth service....")
 
 	// 連接 MongoDB
 	mongoURI := getEnvOrDefault("MONGO_URL", "")

@@ -17,16 +17,17 @@ import (
 // and inserts it into the database.
 //
 // Parameters:
-//   ctx: The context for the request.
-//   email: The email address for the new user.
-//   username: The username for the new user.
-//   password: The plaintext password.
-//   ip: The user's IP address.
+//
+//	ctx: The context for the request.
+//	email: The email address for the new user.
+//	username: The username for the new user.
+//	password: The plaintext password.
+//	ip: The user's IP address.
 //
 // Returns:
-//   An error if the email is already registered, password hashing fails,
-//   or the database insertion fails.
-
+//
+//	An error if the email is already registered, password hashing fails,
+//	or the database insertion fails.
 func RegisterUser(ctx context.Context, email, username string, password string, ip string) error {
 	// Check if email already exists
 	exists, err := IsEmailExists(ctx, email)
@@ -62,14 +63,15 @@ func RegisterUser(ctx context.Context, email, username string, password string, 
 // it generates and returns a new JWT.
 //
 // Parameters:
-//   ctx: The context for the request.
-//   email: The user's email address.
-//   password: The plaintext password provided by the user.
+//
+//	ctx: The context for the request.
+//	email: The user's email address.
+//	password: The plaintext password provided by the user.
 //
 // Returns:
-//   A JWT string if the login is successful.
-//   An error if the user is not found, the password is incorrect, or token generation fails.
-
+//
+//	A JWT string if the login is successful.
+//	An error if the user is not found, the password is incorrect, or token generation fails.
 func LoginUser(ctx context.Context, email, password string) (string, error) {
 	user, err := FindUserByEmail(ctx, email)
 	if err != nil {
@@ -96,15 +98,16 @@ func LoginUser(ctx context.Context, email, password string) (string, error) {
 // it hashes the new password and updates the user's record in the database.
 //
 // Parameters:
-//   ctx: The context for the request.
-//   userID: The unique ID of the user to change the password for.
-//   oldPassword: The user's current plaintext password.
-//   newPassword: The new plaintext password.
+//
+//	ctx: The context for the request.
+//	userID: The unique ID of the user to change the password for.
+//	oldPassword: The user's current plaintext password.
+//	newPassword: The new plaintext password.
 //
 // Returns:
-//   An error if the userID is invalid, the user is not found, the old password
-//   is incorrect, or the database update fails.
-
+//
+//	An error if the userID is invalid, the user is not found, the old password
+//	is incorrect, or the database update fails.
 func ChangePassword(ctx context.Context, userID string, oldPassword, newPassword string) error {
 	uid, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
