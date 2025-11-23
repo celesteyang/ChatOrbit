@@ -15,6 +15,7 @@ import (
 
 	"github.com/celesteyang/ChatOrbit/shared/logger"
 	"github.com/celesteyang/ChatOrbit/shared/swagger"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -75,6 +76,7 @@ func main() {
 	logger.Info("Starting chat service")
 
 	r := gin.Default()
+	r.Use(cors.Default())
 	swagger.InitSwagger(r, "Chat Service")
 	hub := NewHub(redisClient)
 	// hub instance run in a separate goroutine

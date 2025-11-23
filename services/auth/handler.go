@@ -130,8 +130,8 @@ func ChangePasswordHandler(c *gin.Context) {
 // @Success      200  {object}  MessageResponse
 // @Router       /logout [post]
 func LogoutHandler(c *gin.Context) {
-	// c.SetCookie("token", "", -1, "/", "localhost", true, true)
+	c.SetCookie("token", "", -1, "/", "localhost", true, true)
 	// without frontend cookie
-	c.SetCookie("token", "", -1, "/", "", false, true)
+	// c.SetCookie("token", "", -1, "/", "", false, true)
 	c.JSON(http.StatusOK, MessageResponse{Message: "Logged out successfully"})
 }
