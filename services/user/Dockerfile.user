@@ -9,4 +9,4 @@ COPY --from=builder /app/app .
 CMD ["./app"]
 
 ENV LOGGING_LEVEL=info
-EXPOSE 8081
+EXPOSE 8087

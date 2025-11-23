@@ -1,0 +1,52 @@
+basePath: /
+definitions:
+  main.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+host: localhost:8087
+info:
+  contact: {}
+  description: API for user profile and presence.
+  title: User Service API
+  version: "1.0"
+paths:
+  /user/{id}:
+    get:
+      description: Returns user profile by user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.User'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user info
+      tags:
+      - User
+schemes:
+- http
+swagger: "2.0"
