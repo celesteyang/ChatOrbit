@@ -68,11 +68,17 @@ func (h *Hub) Run() {
 				logger.Info("Subscribed to room", zap.String("roomID", client.roomID))
 			}
 			h.clients[client] = true
+			if err := h.trackPresence(context.Background(), client.roomID, client.user.UserID); err != nil {
+				logger.Error("Failed to track presence", zap.Error(err))
+			}
 			logger.Info("Client registered", zap.String("userID", client.user.UserID))
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
 				close(client.send)
+				if err := h.removePresence(context.Background(), client.roomID, client.user.UserID); err != nil {
+					logger.Error("Failed to remove presence", zap.Error(err))
+				}
 				logger.Info("Client unregistered", zap.String("userID", client.user.UserID))
 			}
 		case message := <-h.broadcast:
@@ -173,4 +179,30 @@ func ReverseMessages(messages []Message) {
 	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
 		messages[i], messages[j] = messages[j], messages[i]
 	}
+}
+
+func presenceKey(roomID string) string {
+	return "presence:room:" + roomID
+}
+
+func (h *Hub) trackPresence(ctx context.Context, roomID, userID string) error {
+	if err := h.redis.SAdd(ctx, presenceKey(roomID), userID).Err(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Hub) removePresence(ctx context.Context, roomID, userID string) error {
+	if err := h.redis.SRem(ctx, presenceKey(roomID), userID).Err(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Hub) GetRoomPresenceCount(ctx context.Context, roomID string) (int64, error) {
+	count, err := h.redis.SCard(ctx, presenceKey(roomID)).Result()
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }

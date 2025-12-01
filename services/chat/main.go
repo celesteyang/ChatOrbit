@@ -88,6 +88,7 @@ func main() {
 	// RESTful API for chat history
 	r.GET("/chat/history/:roomID", GetChatHistoryHandler)
 	r.POST("/chat/rooms", CreateRoomHandler)
+	r.GET("/chat/rooms/:roomID/presence", GetRoomPresenceHandler(hub))
 	// Run the server
 	if err := r.Run(":" + servicePort); err != nil {
 		logger.Fatal("Failed to run server", zap.Error(err))
