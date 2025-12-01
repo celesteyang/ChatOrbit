@@ -40,10 +40,15 @@ func ChatWebSocketHandler(hub *Hub) gin.HandlerFunc {
 			return
 		}
 
-		roomID := c.DefaultQuery("room_id", "general")
+		// Accept both snake_case and camelCase room query parameters so clients that
+		// send either format can join the intended room instead of falling back to the
+		// default room.
+		roomID := strings.TrimSpace(c.Query("room_id"))
 		if roomID == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "room_id is required"})
-			return
+			roomID = strings.TrimSpace(c.Query("roomId"))
+		}
+		if roomID == "" {
+			roomID = "general"
 		}
 
 		if err := EnsureRoomExists(c.Request.Context(), roomID); err != nil {
