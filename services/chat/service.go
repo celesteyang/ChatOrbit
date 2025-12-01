@@ -4,12 +4,22 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"sync"
 	"time"
 
 	"github.com/celesteyang/ChatOrbit/shared/logger"
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
+)
+
+// Heartbeat and presence timing configuration.
+const (
+	writeWait   = 10 * time.Second
+	pongWait    = 25 * time.Second
+	pingPeriod  = 10 * time.Second
+	presenceTTL = 30 * time.Second
 )
 
 // Represents a single WebSocket connection, including user info and message send channel.
@@ -29,6 +39,10 @@ type Hub struct {
 	unregister chan *client
 	redis      *redis.Client
 	rooms      map[string]bool
+
+	// roomsMu protects concurrent access to the rooms map when clients join
+	// new rooms outside of the Hub event loop (e.g., when switching rooms).
+	roomsMu sync.Mutex
 }
 
 type BroadcastMessage struct {
@@ -62,11 +76,7 @@ func (h *Hub) Run() {
 			if client.roomID == "" {
 				client.roomID = "general"
 			}
-			if _, ok := h.rooms[client.roomID]; !ok {
-				h.rooms[client.roomID] = true
-				h.subscribeToRoom(client.roomID)
-				logger.Info("Subscribed to room", zap.String("roomID", client.roomID))
-			}
+			h.ensureRoomSubscription(client.roomID)
 			h.clients[client] = true
 			if err := h.trackPresence(context.Background(), client.roomID, client.user.UserID); err != nil {
 				logger.Error("Failed to track presence", zap.Error(err))
@@ -115,12 +125,29 @@ func (h *Hub) subscribeToRoom(roomID string) {
 	}()
 }
 
+// ensureRoomSubscription subscribes the Hub to a room channel if it has not done so yet.
+func (h *Hub) ensureRoomSubscription(roomID string) {
+	h.roomsMu.Lock()
+	defer h.roomsMu.Unlock()
+
+	if _, ok := h.rooms[roomID]; ok {
+		return
+	}
+
+	h.rooms[roomID] = true
+	h.subscribeToRoom(roomID)
+	logger.Info("Subscribed to room", zap.String("roomID", roomID))
+}
+
 // Handlers reading messages from the WebSocket connection, saving them to the database, and publishing them to Redis.
 func HandleClientMessages(c *client) {
 	defer func() {
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
+
+	// Set initial read deadline so connections that stop responding to heartbeats are cleaned up.
+	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 
 	for {
 		_, message, err := c.conn.ReadMessage()
@@ -138,9 +165,17 @@ func HandleClientMessages(c *client) {
 		}
 
 		incomingMessage.UserID = c.user.UserID
-		if incomingMessage.RoomID == "" {
-			incomingMessage.RoomID = c.roomID
+		targetRoom := incomingMessage.RoomID
+		if targetRoom == "" {
+			targetRoom = c.roomID
 		}
+		if targetRoom != c.roomID {
+			if err := c.hub.switchClientRoom(context.Background(), c, targetRoom); err != nil {
+				logger.Error("Failed to switch client room", zap.Error(err))
+				targetRoom = c.roomID
+			}
+		}
+		incomingMessage.RoomID = targetRoom
 		incomingMessage.Timestamp = time.Now()
 
 		// Save the message to the database by calling the model layer function.
@@ -159,7 +194,12 @@ func HandleClientMessages(c *client) {
 
 // Write messages from the Hub to the WebSocket connection.
 func HandleClientWrites(c *client) {
-	defer c.conn.Close()
+	ticker := time.NewTicker(pingPeriod)
+	defer func() {
+		ticker.Stop()
+		c.conn.Close()
+	}()
+
 	for {
 		select {
 		case message, ok := <-c.send:
@@ -167,7 +207,17 @@ func HandleClientWrites(c *client) {
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
+			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+				return
+			}
 			if err := c.conn.WriteMessage(websocket.TextMessage, message); err != nil {
+				return
+			}
+		case <-ticker.C:
+			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+				return
+			}
+			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
 		}
@@ -181,28 +231,94 @@ func ReverseMessages(messages []Message) {
 	}
 }
 
+// switchClientRoom moves a connection into a different room, updating presence and subscriptions.
+func (h *Hub) switchClientRoom(ctx context.Context, c *client, newRoomID string) error {
+	if newRoomID == "" || newRoomID == c.roomID {
+		return nil
+	}
+
+	if err := EnsureRoomExists(ctx, newRoomID); err != nil {
+		return err
+	}
+
+	if err := h.trackPresence(ctx, newRoomID, c.user.UserID); err != nil {
+		return err
+	}
+
+	if err := h.removePresence(ctx, c.roomID, c.user.UserID); err != nil {
+		return err
+	}
+
+	c.roomID = newRoomID
+	h.ensureRoomSubscription(newRoomID)
+
+	return nil
+}
+
 func presenceKey(roomID string) string {
 	return "presence:room:" + roomID
 }
 
+func presenceMemberKey(roomID, userID string) string {
+	return fmt.Sprintf("presence:room:%s:user:%s", roomID, userID)
+}
+
 func (h *Hub) trackPresence(ctx context.Context, roomID, userID string) error {
-	if err := h.redis.SAdd(ctx, presenceKey(roomID), userID).Err(); err != nil {
+	pipe := h.redis.TxPipeline()
+	pipe.SAdd(ctx, presenceKey(roomID), userID)
+	pipe.Set(ctx, presenceMemberKey(roomID, userID), "1", presenceTTL)
+	if _, err := pipe.Exec(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
+func (h *Hub) refreshPresence(ctx context.Context, roomID, userID string) error {
+	pipe := h.redis.TxPipeline()
+	pipe.SAdd(ctx, presenceKey(roomID), userID)
+	pipe.Set(ctx, presenceMemberKey(roomID, userID), "1", presenceTTL)
+	_, err := pipe.Exec(ctx)
+	return err
+}
+
 func (h *Hub) removePresence(ctx context.Context, roomID, userID string) error {
-	if err := h.redis.SRem(ctx, presenceKey(roomID), userID).Err(); err != nil {
+	pipe := h.redis.TxPipeline()
+	pipe.SRem(ctx, presenceKey(roomID), userID)
+	pipe.Del(ctx, presenceMemberKey(roomID, userID))
+	if _, err := pipe.Exec(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (h *Hub) GetRoomPresenceCount(ctx context.Context, roomID string) (int64, error) {
-	count, err := h.redis.SCard(ctx, presenceKey(roomID)).Result()
+	userIDs, err := h.redis.SMembers(ctx, presenceKey(roomID)).Result()
 	if err != nil {
 		return 0, err
 	}
-	return count, nil
+
+	var (
+		activeCount int64
+		staleUsers  []interface{}
+	)
+
+	for _, userID := range userIDs {
+		ttl, err := h.redis.TTL(ctx, presenceMemberKey(roomID, userID)).Result()
+		if err != nil {
+			return 0, err
+		}
+		if ttl > 0 {
+			activeCount++
+			continue
+		}
+		staleUsers = append(staleUsers, userID)
+	}
+
+	if len(staleUsers) > 0 {
+		if err := h.redis.SRem(ctx, presenceKey(roomID), staleUsers...).Err(); err != nil {
+			logger.Error("Failed to clean stale presence entries", zap.Error(err))
+		}
+	}
+
+	return activeCount, nil
 }
