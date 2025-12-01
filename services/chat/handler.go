@@ -2,8 +2,10 @@ package main
 
 // HTTP/WebSocket handlers for chat service
 import (
+	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/celesteyang/ChatOrbit/shared/logger"
 	"github.com/gin-gonic/gin"
@@ -78,6 +80,15 @@ func ChatWebSocketHandler(hub *Hub) gin.HandlerFunc {
 			},
 			roomID: roomID,
 		}
+
+		// Refresh presence and read deadlines when pong responses arrive.
+		conn.SetPongHandler(func(string) error {
+			conn.SetReadDeadline(time.Now().Add(pongWait))
+			if err := client.hub.refreshPresence(context.Background(), client.roomID, client.user.UserID); err != nil {
+				logger.Error("Failed to refresh presence from pong", zap.Error(err))
+			}
+			return nil
+		})
 
 		// Register the client
 		client.hub.register <- client
