@@ -13,6 +13,7 @@ import (
 
 var (
 	messageCollection *mongo.Collection
+	roomCollection    *mongo.Collection
 )
 
 // Message represents a chat message stored in MongoDB.
@@ -27,6 +28,7 @@ type Message struct {
 // InitCollections sets up the MongoDB collections and creates necessary indexes.
 func InitCollections(db *mongo.Database) {
 	messageCollection = db.Collection("messages")
+	roomCollection = db.Collection("rooms")
 
 	// Create room_id index to optimize queries.
 	_, err := messageCollection.Indexes().CreateOne(
@@ -39,11 +41,42 @@ func InitCollections(db *mongo.Database) {
 	if err != nil {
 		panic("Failed to create index on messages collection: " + err.Error())
 	}
+
+	_, err = roomCollection.Indexes().CreateOne(
+		context.Background(),
+		mongo.IndexModel{
+			Keys:    bson.D{{Key: "room_id", Value: 1}},
+			Options: options.Index().SetUnique(true),
+		},
+	)
+	if err != nil {
+		panic("Failed to create index on rooms collection: " + err.Error())
+	}
 }
 
 // Insert the message to the database.
 func InsertMessage(ctx context.Context, msg *Message) error {
 	_, err := messageCollection.InsertOne(ctx, msg)
+	return err
+}
+
+// EnsureRoomExists creates the room document if it does not exist.
+func EnsureRoomExists(ctx context.Context, roomID string) error {
+	if roomID == "" {
+		return nil
+	}
+
+	_, err := roomCollection.UpdateOne(
+		ctx,
+		bson.M{"room_id": roomID},
+		bson.M{
+			"$setOnInsert": bson.M{
+				"room_id":    roomID,
+				"created_at": time.Now(),
+			},
+		},
+		options.Update().SetUpsert(true),
+	)
 	return err
 }
 

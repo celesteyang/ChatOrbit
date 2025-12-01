@@ -11,6 +11,10 @@ import (
 	"go.uber.org/zap"
 )
 
+type createRoomRequest struct {
+	RoomID string `json:"room_id" binding:"required"`
+}
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
@@ -31,6 +35,18 @@ func ChatWebSocketHandler(hub *Hub) gin.HandlerFunc {
 		}
 		if tokenString == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing token"})
+			return
+		}
+
+		roomID := c.DefaultQuery("room_id", "general")
+		if roomID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "room_id is required"})
+			return
+		}
+
+		if err := EnsureRoomExists(c.Request.Context(), roomID); err != nil {
+			logger.Error("Failed to ensure room exists", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create room"})
 			return
 		}
 
@@ -60,6 +76,7 @@ func ChatWebSocketHandler(hub *Hub) gin.HandlerFunc {
 				UserID: userID,
 				Email:  claims["email"].(string),
 			},
+			roomID: roomID,
 		}
 
 		// Register the client
@@ -86,6 +103,12 @@ func GetChatHistoryHandler(c *gin.Context) {
 		return
 	}
 
+	if err := EnsureRoomExists(c.Request.Context(), roomID); err != nil {
+		logger.Error("Failed to ensure room exists", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create room"})
+		return
+	}
+
 	// Call the model function to get messages.
 	// You might want to add pagination (e.g., limit, offset) here.
 	messages, err := GetMessagesByRoom(c.Request.Context(), roomID, 50)
@@ -95,4 +118,28 @@ func GetChatHistoryHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, messages)
+}
+
+// @Summary Create chat room
+// @Description Creates a chat room by ID. Idempotent: returns success if the room already exists.
+// @Tags Chat
+// @Accept json
+// @Produce json
+// @Param room body createRoomRequest true "Room info"
+// @Success 200 {object} gin.H
+// @Router /chat/rooms [post]
+func CreateRoomHandler(c *gin.Context) {
+	var req createRoomRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "room_id is required"})
+		return
+	}
+
+	if err := EnsureRoomExists(c.Request.Context(), req.RoomID); err != nil {
+		logger.Error("Failed to ensure room exists", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create room"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"room_id": req.RoomID})
 }

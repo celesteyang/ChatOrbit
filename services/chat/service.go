@@ -14,20 +14,26 @@ import (
 
 // Represents a single WebSocket connection, including user info and message send channel.
 type client struct {
-	hub  *Hub
-	conn *websocket.Conn
-	send chan []byte
-	user *UserClaims
+	hub    *Hub
+	conn   *websocket.Conn
+	send   chan []byte
+	user   *UserClaims
+	roomID string
 }
 
 // Coordinates all client connections and handles message broadcasting.
 type Hub struct {
 	clients    map[*client]bool
-	broadcast  chan []byte
+	broadcast  chan BroadcastMessage
 	register   chan *client
 	unregister chan *client
 	redis      *redis.Client
 	rooms      map[string]bool
+}
+
+type BroadcastMessage struct {
+	RoomID  string
+	Payload []byte
 }
 
 // Stores user information extracted from JWT.
@@ -40,7 +46,7 @@ type UserClaims struct {
 func NewHub(redisClient *redis.Client) *Hub {
 	return &Hub{
 		clients:    make(map[*client]bool),
-		broadcast:  make(chan []byte),
+		broadcast:  make(chan BroadcastMessage),
 		register:   make(chan *client),
 		unregister: make(chan *client),
 		redis:      redisClient,
@@ -50,13 +56,17 @@ func NewHub(redisClient *redis.Client) *Hub {
 
 // Starts the main event loop for the Hub, listens for register, unregister, and broadcast events and handles them accordingly.
 func (h *Hub) Run() {
-	roomID := "general"
-	h.rooms[roomID] = true
-	h.subscribeToRoom(roomID)
-
 	for {
 		select {
 		case client := <-h.register:
+			if client.roomID == "" {
+				client.roomID = "general"
+			}
+			if _, ok := h.rooms[client.roomID]; !ok {
+				h.rooms[client.roomID] = true
+				h.subscribeToRoom(client.roomID)
+				logger.Info("Subscribed to room", zap.String("roomID", client.roomID))
+			}
 			h.clients[client] = true
 			logger.Info("Client registered", zap.String("userID", client.user.UserID))
 		case client := <-h.unregister:
@@ -69,8 +79,11 @@ func (h *Hub) Run() {
 			// Broadcast the message received from Redis to all local connections.
 			// Now it's simplified to send to all connections, futurely can filter by room.
 			for client := range h.clients {
+				if client.roomID != message.RoomID {
+					continue
+				}
 				select {
-				case client.send <- message:
+				case client.send <- message.Payload:
 				default:
 					close(client.send)
 					delete(h.clients, client)
@@ -91,7 +104,7 @@ func (h *Hub) subscribeToRoom(roomID string) {
 				logger.Error("Error receiving message from Redis PubSub", zap.Error(err))
 				break
 			}
-			h.broadcast <- []byte(msg.Payload)
+			h.broadcast <- BroadcastMessage{RoomID: roomID, Payload: []byte(msg.Payload)}
 		}
 	}()
 }
@@ -119,6 +132,9 @@ func HandleClientMessages(c *client) {
 		}
 
 		incomingMessage.UserID = c.user.UserID
+		if incomingMessage.RoomID == "" {
+			incomingMessage.RoomID = c.roomID
+		}
 		incomingMessage.Timestamp = time.Now()
 
 		// Save the message to the database by calling the model layer function.

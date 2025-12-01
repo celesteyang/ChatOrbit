@@ -100,13 +100,26 @@ For example, for the `chat` service, we will run directly with `go` inside the d
 ```bash
 JWT_SECRET="your_secret_key" MONGO_URL="mongodb://host.docker.internal:27019" REDIS_ADDR="host.docker.internal:6381" PORT=8088 go run .
 ```
+#### Creating a Room
+Rooms are created on demand via a simple REST call. This is useful when the frontend navigates to a room like `music` before
+anyone has joined it.
+
+```bash
+curl -X POST http://localhost:8088/chat/rooms \
+  -H "Content-Type: application/json" \
+  -d '{"room_id": "music"}'
+```
+
+The same call is idempotent—if the room already exists it simply returns the requested `room_id`.
+
 #### WebSocket Testing with `wscat`
-After logging in with the auth service and getting a JWT, you can test the WebSocket connection with `wscat`.
+After logging in with the auth service and getting a JWT, you can test the WebSocket connection with `wscat`. Pass `room_id` in
+the WebSocket URL to join a room (defaults to `general`). If the room does not exist yet, it will be created automatically.
 ```bash
 npm install -g wscat
 ```
 ```bash
-wscat -c "ws://localhost:8088/ws/chat?token=<YOUR_JWT_TOKEN>"
+wscat -c "ws://localhost:8088/ws/chat?token=<YOUR_JWT_TOKEN>&room_id=my-room"
 ```
 **Verifying Real-Time Broadcast with Multiple Terminals**
 To confirm that real-time messaging is working correctly, we need to simulate multiple users. This tests the WebSocket connections and the Redis Pub/Sub broadcast functionality.
@@ -117,23 +130,23 @@ Use auth service to get a unique JWT for a second user.
 Open two separate terminal windows and connect to the chat service, each with a different user's JWT.
 ```bash
 # Terminal 1: User 1's connection
-wscat -c "ws://localhost:8088/ws/chat?token=<USER_1_JWT_TOKEN>"
+wscat -c "ws://localhost:8088/ws/chat?token=<USER_1_JWT_TOKEN>&room_id=my-room"
 ```
 ```bash
 # Terminal 2: User 2's connection
-wscat -c "ws://localhost:8088/ws/chat?token=<USER_2_JWT_TOKEN>"
+wscat -c "ws://localhost:8088/ws/chat?token=<USER_2_JWT_TOKEN>&room_id=my-room"
 ```
 3. Test Real-Time Communication
 
 ```bash
 # Terminal 1: User 1
 # Send a message:
-{"room_id": "general", "content": "Hello!"}
+{"room_id": "my-room", "content": "Hello!"}
 ```
 ```bash
 # Terminal 2: User 2
 # Send a reply:
-{"room_id": "general", "content": "Hi there! Got your message instantly."}
+{"room_id": "my-room", "content": "Hi there! Got your message instantly."}
 ```
 Both terminals should display messages in real time:
 ```json
