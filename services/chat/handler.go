@@ -88,6 +88,32 @@ func ChatWebSocketHandler(hub *Hub) gin.HandlerFunc {
 	}
 }
 
+// @Summary Get room presence
+// @Description Returns the number of users currently connected to a room.
+// @Tags Chat
+// @Produce json
+// @Param roomID path string true "Chat Room ID"
+// @Success 200 {object} gin.H
+// @Router /chat/rooms/{roomID}/presence [get]
+func GetRoomPresenceHandler(hub *Hub) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		roomID := c.Param("roomID")
+		if roomID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "room_id is required"})
+			return
+		}
+
+		count, err := hub.GetRoomPresenceCount(c.Request.Context(), roomID)
+		if err != nil {
+			logger.Error("Failed to get room presence", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get presence"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"room_id": roomID, "online": count})
+	}
+}
+
 // @Summary Get chat history
 // @Description Retrieves chat messages from a specific room.
 // @Tags Chat
