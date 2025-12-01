@@ -2,8 +2,10 @@ package main
 
 // HTTP/WebSocket handlers for chat service
 import (
+	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/celesteyang/ChatOrbit/shared/logger"
 	"github.com/gin-gonic/gin"
@@ -38,10 +40,15 @@ func ChatWebSocketHandler(hub *Hub) gin.HandlerFunc {
 			return
 		}
 
-		roomID := c.DefaultQuery("room_id", "general")
+		// Accept both snake_case and camelCase room query parameters so clients that
+		// send either format can join the intended room instead of falling back to the
+		// default room.
+		roomID := strings.TrimSpace(c.Query("room_id"))
 		if roomID == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "room_id is required"})
-			return
+			roomID = strings.TrimSpace(c.Query("roomId"))
+		}
+		if roomID == "" {
+			roomID = "general"
 		}
 
 		if err := EnsureRoomExists(c.Request.Context(), roomID); err != nil {
@@ -78,6 +85,15 @@ func ChatWebSocketHandler(hub *Hub) gin.HandlerFunc {
 			},
 			roomID: roomID,
 		}
+
+		// Refresh presence and read deadlines when pong responses arrive.
+		conn.SetPongHandler(func(string) error {
+			conn.SetReadDeadline(time.Now().Add(pongWait))
+			if err := client.hub.refreshPresence(context.Background(), client.roomID, client.user.UserID); err != nil {
+				logger.Error("Failed to refresh presence from pong", zap.Error(err))
+			}
+			return nil
+		})
 
 		// Register the client
 		client.hub.register <- client
