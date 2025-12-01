@@ -93,7 +93,7 @@ func ChatWebSocketHandler(hub *Hub) gin.HandlerFunc {
 // @Tags Chat
 // @Produce json
 // @Param roomID path string true "Chat Room ID"
-// @Success 200 {object} gin.H
+// @Success 200 {object} map[string]interface{}
 // @Router /chat/rooms/{roomID}/presence [get]
 func GetRoomPresenceHandler(hub *Hub) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -152,7 +152,7 @@ func GetChatHistoryHandler(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param room body createRoomRequest true "Room info"
-// @Success 200 {object} gin.H
+// @Success 200 {object} map[string]interface{}
 // @Router /chat/rooms [post]
 func CreateRoomHandler(c *gin.Context) {
 	var req createRoomRequest

@@ -13,6 +13,13 @@ definitions:
       user_id:
         type: string
     type: object
+  main.createRoomRequest:
+    properties:
+      room_id:
+        type: string
+    required:
+    - room_id
+    type: object
 host: localhost:8088
 info:
   contact: {}
@@ -41,6 +48,50 @@ paths:
               $ref: '#/definitions/main.Message'
             type: array
       summary: Get chat history
+      tags:
+      - Chat
+  /chat/rooms:
+    post:
+      consumes:
+      - application/json
+      description: 'Creates a chat room by ID. Idempotent: returns success if the
+        room already exists.'
+      parameters:
+      - description: Room info
+        in: body
+        name: room
+        required: true
+        schema:
+          $ref: '#/definitions/main.createRoomRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create chat room
+      tags:
+      - Chat
+  /chat/rooms/{roomID}/presence:
+    get:
+      description: Returns the number of users currently connected to a room.
+      parameters:
+      - description: Chat Room ID
+        in: path
+        name: roomID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get room presence
       tags:
       - Chat
 schemes:

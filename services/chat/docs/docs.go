@@ -49,6 +49,71 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/chat/rooms": {
+            "post": {
+                "description": "Creates a chat room by ID. Idempotent: returns success if the room already exists.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Create chat room",
+                "parameters": [
+                    {
+                        "description": "Room info",
+                        "name": "room",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.createRoomRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/rooms/{roomID}/presence": {
+            "get": {
+                "description": "Returns the number of users currently connected to a room.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Get room presence",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Chat Room ID",
+                        "name": "roomID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -68,6 +133,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.createRoomRequest": {
+            "type": "object",
+            "required": [
+                "room_id"
+            ],
+            "properties": {
+                "room_id": {
                     "type": "string"
                 }
             }
