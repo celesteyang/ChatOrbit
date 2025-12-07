@@ -79,7 +79,7 @@ jobs:
           PY
 
       - name: Run integration tests
-          working-directory: ./tests/integration
+        working-directory: ./tests/integration
         run: pytest -s
 
       - name: Show service logs on failure
