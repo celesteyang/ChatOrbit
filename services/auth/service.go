@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -75,18 +76,23 @@ func RegisterUser(ctx context.Context, email, username string, password string, 
 func LoginUser(ctx context.Context, email, password string) (string, error) {
 	user, err := FindUserByEmail(ctx, email)
 	if err != nil {
-		return "", errors.New("Email is incorrect.")
+		log.Println("Login failed (email)", email, err)
+		return "", errors.New("Email is incorrect. Error: " + err.Error())
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 	if err != nil {
-		return "", errors.New("Password is incorrect.")
+		log.Println("Login failed (password)", email, err)
+		return "", errors.New("Password is incorrect. Error: " + err.Error())
 	}
 
 	token, err := GenerateJWT(user.ID.Hex(), user.Email)
 	if err != nil {
-		return "", err
+		log.Println("JWT error", email, err)
+		return "", errors.New("Failed to generate JWT: " + err.Error())
 	}
+
+	log.Println("Login success:", user.Email)
 
 	return token, nil
 }
