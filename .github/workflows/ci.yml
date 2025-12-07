@@ -111,7 +111,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./services/auth
-          file: ./Dockerfile.auth
+          file: ./services/auth/Dockerfile.auth
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/auth:latest
@@ -121,7 +121,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./services/chat
-          file: ./Dockerfile.chat
+          file: ./services/chat/Dockerfile.chat
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/chat:latest
@@ -131,7 +131,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./services/user
-          file: ./Dockerfile.user
+          file: ./services/user/Dockerfile.user
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/user:latest
