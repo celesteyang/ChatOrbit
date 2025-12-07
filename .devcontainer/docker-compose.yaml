@@ -8,7 +8,8 @@ services:
       - ..:/workspace:rw
     user: vscode
     working_dir: /workspace
-    extra_hosts:
-      - host.docker.internal:host-gateway
+    # extra_hosts:
+    #   - host.docker.internal:host-gateway
+    network_mode: host
     command:
       sleep infinity &

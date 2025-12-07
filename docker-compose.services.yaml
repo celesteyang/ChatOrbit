@@ -33,33 +33,49 @@ services:
     volumes:
       - redis-data:/data
 
-  # auth-service:
-  #   build:
-  #     context: services/auth
-  #     dockerfile: Dockerfile.auth
-  #   ports:
-  #     - "8089:8089"
-  #   depends_on:
-  #     - mongo
-  #     - redis
-  #   environment:
-  #     MONGO_URL: "mongodb://mongo:27017"
-  #     JWT_SECRET: "jwtTestY&771765454330an"
+  auth-service:
+    build:
+      context: services/auth
+      dockerfile: Dockerfile.auth
+    ports:
+      - "8089:8089"
+    depends_on:
+      - mongo
+      - redis
+    environment:
+      PORT: 8089
+      MONGO_URL: "mongodb://mongo:27017"
+      JWT_SECRET: "jwtTestY&771765454330an"
 
-  # chat-service:
-  #   build:
-  #     context: services/chat
-  #     dockerfile: Dockerfile.chat
-  #   ports:
-  #     - "8088:8080"
-  #   depends_on:
-  #     - mongo
-  #     - redis
-  #   environment:
-  #     PORT: 8080                
-  #     JWT_SECRET: "jwtTestY&771765454330an"
-  #     REDIS_ADDR: "redis:6379"  
-  #     MONGO_URL: "mongodb://mongo:27017"
+  chat-service:
+    build:
+      context: services/chat
+      dockerfile: Dockerfile.chat
+    ports:
+      - "8088:8088"
+    depends_on:
+      - mongo
+      - redis
+    environment:
+      PORT: 8088                
+      JWT_SECRET: "jwtTestY&771765454330an"
+      REDIS_ADDR: "redis:6379"  
+      MONGO_URL: "mongodb://mongo:27017"
+
+  user-service:
+    build:
+      context: services/user
+      dockerfile: Dockerfile.user
+    ports:
+      - "8087:8087"
+    depends_on:
+      - mongo
+      - redis
+    environment:
+      PORT: 8087                
+      JWT_SECRET: "jwtTestY&771765454330an"
+      REDIS_ADDR: "redis:6379"  
+      MONGO_URL: "mongodb://mongo:27017"
 
 volumes:
   mongo-data:

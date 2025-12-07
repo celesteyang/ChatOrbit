@@ -9,10 +9,15 @@
     "customizations": {
         "vscode": {
             "settings": {
-                "terminal.integrated.defaultProfile.linux": "bash"
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "python.languageServer": "Pylance"
             },
             "extensions": [
-                "golang.go"
+                "golang.go",
+                "openai.codex",
+                "openai.chatgpt",
+                "ms-python.python",       // Python extension
+                "ms-python.vscode-pylance" // Python language server
             ]
         }
     },

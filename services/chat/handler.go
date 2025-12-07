@@ -171,17 +171,30 @@ func GetChatHistoryHandler(c *gin.Context) {
 // @Success 200 {object} map[string]interface{}
 // @Router /chat/rooms [post]
 func CreateRoomHandler(c *gin.Context) {
+	logger.Info("[CreateRoom] Incoming request")
+
 	var req createRoomRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.Warn("[CreateRoom] Invalid JSON", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "room_id is required"})
 		return
 	}
 
+	logger.Info("[CreateRoom] Request received",
+		zap.String("room_id", req.RoomID),
+		zap.String("ip", c.ClientIP()),
+	)
+
 	if err := EnsureRoomExists(c.Request.Context(), req.RoomID); err != nil {
-		logger.Error("Failed to ensure room exists", zap.Error(err))
+		logger.Error("[CreateRoom] Failed to ensure room exists",
+			zap.String("room_id", req.RoomID),
+			zap.Error(err),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create room"})
 		return
 	}
+
+	logger.Info("[CreateRoom] SUCCESS", zap.String("room_id", req.RoomID))
 
 	c.JSON(http.StatusOK, gin.H{"room_id": req.RoomID})
 }

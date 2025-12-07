@@ -30,3 +30,12 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Ignore python artifacts
+__pycache__/
+*pytest_cache/
+*.py[cod]
+*.pyo
+*.pyd
+
+**/app

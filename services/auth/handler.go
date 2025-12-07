@@ -2,6 +2,7 @@ package main
 
 // HTTP handlers for auth service
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -33,17 +34,24 @@ type RegisterRequest struct {
 func RegisterHandler(c *gin.Context) {
 	var req RegisterRequest
 
+	log.Println("[Register] Incoming request")
+
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Println("[Register] Invalid JSON:", err)
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid input"})
 		return
 	}
-	// Get client IP address
-	ip := c.ClientIP()
 
-	if err := RegisterUser(c.Request.Context(), req.Email, req.Username, req.Password, ip); err != nil {
+	// Log the data we actually care about (not password)
+	log.Printf("[Register] Email=%s Username=%s IP=%s\n", req.Email, req.Username, c.ClientIP())
+
+	if err := RegisterUser(c.Request.Context(), req.Email, req.Username, req.Password, c.ClientIP()); err != nil {
+		log.Println("[Register] Registration error:", err)
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
+
+	log.Println("[Register] SUCCESS for", req.Email)
 
 	c.JSON(http.StatusOK, MessageResponse{Message: "Registration successful"})
 }
@@ -68,21 +76,29 @@ type LoginResponse struct {
 // @Param        request body LoginRequest true "Login request body"
 func LoginHandler(c *gin.Context) {
 	var req LoginRequest
+
+	log.Println("[Login] Incoming request")
+
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Println("[Login] Invalid JSON:", err)
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid input"})
 		return
 	}
 
+	log.Printf("[Login] Attempt username/email=%s IP=%s\n", req.Email, c.ClientIP())
+
 	token, err := LoginUser(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
+		log.Println("[Login] Auth error for", req.Email, ":", err)
 		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: err.Error()})
 		return
 	}
-	// Set JWT in HttpOnly Cookie
-	// c.SetCookie("token", token, 3600*24, "/", "localhost", true, true)
-	// without frontend cookie
+
+	log.Println("[Login] SUCCESS for", req.Email)
+
+	// Without frontend cookie
 	c.SetCookie("token", token, 3600*24, "/", "", false, true)
-	c.JSON(200, gin.H{"token": token})
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
 type ChangePasswordRequest struct {

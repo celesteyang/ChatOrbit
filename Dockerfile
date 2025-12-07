@@ -24,6 +24,10 @@ ENV GOPATH=/home/vscode/go
 ENV PATH=$PATH:/home/vscode/go/bin
 RUN mkdir -p /home/vscode/go && chown -R vscode:vscode /home/vscode/go
 
+COPY requirements.txt /workspace/requirements.txt
+RUN apt-get update && apt-get install -y python3-pip python3-dev python3-venv
+RUN pip3 install --break-system-packages -r /workspace/requirements.txt
+
 WORKDIR /workspace
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s CMD curl -f http://localhost:8080/health || exit 1
