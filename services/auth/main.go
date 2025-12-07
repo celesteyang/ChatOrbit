@@ -22,8 +22,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// import docs
-
 func main() {
 	logConfig := logger.LogConfig{
 		Level:       getEnvOrDefault("LOG_LEVEL", "info"),
@@ -46,7 +44,7 @@ func main() {
 
 	defer logger.Sync()
 
-	logger.Info("Starting auth service")
+	logger.Info("Starting auth service....")
 
 	// 連接 MongoDB
 	mongoURI := getEnvOrDefault("MONGO_URL", "")
@@ -69,7 +67,7 @@ func main() {
 
 	// CORS 設定，允許前端跨域並攜帶 Cookie
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"}, // 前端網址
+		AllowOrigins:     []string{"http://localhost:8080"}, // 前端網址
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true, // 允許 Cookie
