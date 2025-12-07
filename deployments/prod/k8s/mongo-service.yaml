@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: chatorbit-prod
+  labels:
+    app: chatorbit
+    component: mongo
+spec:
+  ports:
+    - port: 27017
+      name: mongo
+  selector:
+    app: chatorbit
+    component: mongo

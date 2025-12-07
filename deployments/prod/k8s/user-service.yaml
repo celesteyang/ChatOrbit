@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: chatorbit-prod
+  labels:
+    app: chatorbit
+    component: user
+spec:
+  selector:
+    app: chatorbit
+    component: user
+  ports:
+    - port: 8087
+      targetPort: 8087
+      name: http
+  type: ClusterIP

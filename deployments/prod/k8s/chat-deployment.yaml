@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-service
+  namespace: chatorbit-prod
+  labels:
+    app: chatorbit
+    component: chat
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: chatorbit
+      component: chat
+  template:
+    metadata:
+      labels:
+        app: chatorbit
+        component: chat
+    spec:
+      containers:
+        - name: chat-service
+          image: celesteyang/chat:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8088
+          env:
+            - name: PORT
+              value: "8088"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: chatorbit-secrets
+                  key: JWT_SECRET
+            - name: REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: chatorbit-config
+                  key: REDIS_ADDR
+            - name: MONGO_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: chatorbit-config
+                  key: MONGO_URL
+            - name: LOGGING_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: chatorbit-config
+                  key: LOGGING_LEVEL
+            - name: ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: chatorbit-config
+                  key: ENVIRONMENT
+          readinessProbe:
+            tcpSocket:
+              port: 8088
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8088
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi

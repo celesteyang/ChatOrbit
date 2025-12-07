@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chatorbit-prod
+  labels:
+    app: chatorbit
+    environment: production
