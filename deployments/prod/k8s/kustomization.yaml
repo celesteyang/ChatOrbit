@@ -1,0 +1,15 @@
+namespace: chatorbit-prod
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.yaml
+  - mongo-service.yaml
+  - mongo-statefulset.yaml
+  - redis-service.yaml
+  - redis-statefulset.yaml
+  - auth-deployment.yaml
+  - auth-service.yaml
+  - chat-deployment.yaml
+  - chat-service.yaml
+  - user-deployment.yaml
+  - user-service.yaml
