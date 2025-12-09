@@ -21,29 +21,28 @@ Microservices managed with docker-compose.
 - User: Profile & user queries
 - Auth: User signup, login, JWT auth
 - Chat: WebSocket server with Redis pub/sub
-- Gateway: Unified API entrypoint
 
 ## Project Structure
-
 ```
 .
-├── .devcontainer/
-│   ├── devcontainer.json
-│   └── docker-compose.yaml
-├── pkg/
-│   ├── config/
-│   ├── logger/
-│   └── models/
-├── services/
-│   ├── auth/
-│   ├── chat/
-│   ├── gateway/
-│   └── user/
-├── docker-compose.yaml
+├── services/           # Go microservices
+│   ├── auth/           # Authentication + JWT
+│   ├── user/           # Profile + users
+│   └── chat/           # WebSocket chat service
+│
+├── shared/             # shared Go modules (logging, swagger)
+│ 
+├── deployments/        
+│   ├── README.md       # eployment guide
+│   └── prod/k8s/       # production Kubernetes manifests
+├── tests/
+│   └── integration/    # Python integration tests
+│
+├── docker-compose.services.yaml
 ├── Dockerfile
-├── README.md
+├── requirements.txt     # pytest etc
+└── README.md
 ```
-
 ## Build
 ```bash
 docker compose -f docker-compose.services.yaml up --build
@@ -77,6 +76,19 @@ If MongoDB or Redis is running in a Docker container (via Docker Compose) and ma
 #### Example API Usage
 **Swagger** 
 http://localhost:8089/swagger/index.html
+**API documentation (Swagger)**
+Each Go service (auth, chat, user) exposes Swagger UI at `/swagger/index.html` when running. To update the generated specs after changing handlers or models:
+
+1. Install the Swagger CLI once locally:
+   ```bash
+   go install github.com/swaggo/swag/cmd/swag@latest
+   ```
+2. Regenerate docs for the service you changed (from that service directory):
+   ```bash
+   cd services/auth   # or services/chat, services/user
+   swag init -g main.go -o docs
+   ```
+3. Commit the updated `docs/` artifacts with your code changes.
 
 **Register Test**
 > Note: These are manual test commands, not using Swagger.
@@ -92,6 +104,13 @@ curl -X POST http://localhost:8089/register \
 curl -X POST http://localhost:8089/login \
   -H "Content-Type: application/json" \
   -d '{"email":"abc@example.com", "password":"12345678"}'
+```
+
+### The User Service
+
+For example, for the `chat` service, we will run directly with `go` inside the dev-container as follows:
+```bash
+JWT_SECRET="your_secret_key" MONGO_URL="mongodb://host.docker.internal:27019" REDIS_ADDR="host.docker.internal:6381" PORT=8087 go run .
 ```
 
 ### The Chat Service
@@ -239,3 +258,21 @@ To access it, simply run:
 http://localhost:8091/
 ```
 where `8091` is the port at which the `Mongo-Express` container is running. This is defined in `docker-compose.services.yaml`.
+
+## Integration tests
+Integration tests live in `tests/integration` and assume the services are running (via Docker Compose) on the default ports.
+
+```bash
+docker compose -f docker-compose.services.yaml up --build -d
+cd tests/integration
+pytest -s
+```
+
+## CI/CD pipeline
+GitHub Actions workflows in `.github/workflows/ci.yml` run on pushes and pull requests:
+
+- **Go Build**: downloads Go modules to ensure the workspace compiles.
+- **Integration Tests**: brings up all services with Docker Compose and executes `pytest -s` in `tests/integration` once the APIs are reachable.
+- **Deploy**: builds and pushes Docker images for auth, chat, and user services. Requires `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets.
+
+For deployment details, see [`deployments/README.md`](deployments/README.md).
