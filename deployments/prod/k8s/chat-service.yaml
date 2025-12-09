@@ -14,4 +14,4 @@ spec:
     - port: 8088
       targetPort: 8088
       name: http
-  type: ClusterIP
+  type: LoadBalancer

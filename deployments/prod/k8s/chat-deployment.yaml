@@ -55,13 +55,13 @@ spec:
           readinessProbe:
             tcpSocket:
               port: 8088
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 10
+            periodSeconds: 5
           livenessProbe:
             tcpSocket:
               port: 8088
-            initialDelaySeconds: 15
-            periodSeconds: 20
+            initialDelaySeconds: 20
+            periodSeconds: 
           resources:
             requests:
               cpu: 100m
