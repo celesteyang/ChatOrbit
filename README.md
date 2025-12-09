@@ -50,8 +50,6 @@ docker compose -f docker-compose.services.yaml up --build
 
 ## Related Project
 [ChatOrbit Frontend](https://github.com/celesteyang/orbit-nexus-chat)
-React app with auto-generated API clients via Orval.
-
 
 ## Running
 
@@ -108,7 +106,7 @@ curl -X POST http://localhost:8089/login \
 
 ### The User Service
 
-For example, for the `chat` service, we will run directly with `go` inside the dev-container as follows:
+For example, for the `user` service, we will run directly with `go` inside the dev-container as follows:
 ```bash
 JWT_SECRET="your_secret_key" MONGO_URL="mongodb://host.docker.internal:27019" REDIS_ADDR="host.docker.internal:6381" PORT=8087 go run .
 ```
