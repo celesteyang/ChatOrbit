@@ -162,23 +162,6 @@ paths:
       summary: Register a new user
       tags:
       - Register
-  /test:
-    get:
-      consumes:
-      - application/json
-      description: This endpoint is used to test if the service is up
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Test the auth service
-      tags:
-      - Health
 schemes:
 - http
 swagger: "2.0"
