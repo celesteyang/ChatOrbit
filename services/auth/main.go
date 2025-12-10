@@ -70,6 +70,7 @@ func main() {
 		AllowOrigins: []string{
 			"http://localhost:8080",
 			"https://localhost",
+      "http://localhost:8080", "https://chatorbit-web-169178749730.asia-east1.run.app"
 		}, // 前端網址
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
