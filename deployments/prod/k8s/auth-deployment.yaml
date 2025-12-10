@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: celesteyang/auth:latest
+          image: celesteyang/auth:4f44f92b2232c801a906e1f9343e64941342b518
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8089

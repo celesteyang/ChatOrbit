@@ -8,7 +8,7 @@
 package main
 
 import (
-	_ "auth/docs"
+	"auth/docs"
 	"context"
 	"os"
 	"time"
@@ -36,6 +36,10 @@ func main() {
 	if err := logger.InitLogger(logConfig); err != nil {
 		panic("Failed to initialize logger: " + err.Error())
 	}
+
+	docs.SwaggerInfo.Host = "104.199.143.43.nip.io"
+	docs.SwaggerInfo.BasePath = "/auth"
+	docs.SwaggerInfo.Schemes = []string{"https"}
 
 	r := gin.Default()
 
