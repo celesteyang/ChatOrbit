@@ -8,7 +8,7 @@
 package main
 
 import (
-	_ "auth/docs"
+	"auth/docs"
 	"context"
 	"os"
 	"time"
@@ -36,6 +36,10 @@ func main() {
 	if err := logger.InitLogger(logConfig); err != nil {
 		panic("Failed to initialize logger: " + err.Error())
 	}
+
+	docs.SwaggerInfo.Host = "104.199.143.43.nip.io"
+	docs.SwaggerInfo.BasePath = "/auth"
+	docs.SwaggerInfo.Schemes = []string{"https"}
 
 	r := gin.Default()
 
@@ -67,7 +71,11 @@ func main() {
 
 	// CORS 設定，允許前端跨域並攜帶 Cookie
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:8080", "https://chatorbit-web-169178749730.asia-east1.run.app"}, // 前端網址
+		AllowOrigins: []string{
+			"http://localhost:8080",
+			"https://localhost",
+			"https://chatorbit-web-169178749730.asia-east1.run.app",
+		}, // 前端網址
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true, // 允許 Cookie

@@ -169,32 +169,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/test": {
-            "get": {
-                "description": "This endpoint is used to test if the service is up",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Health"
-                ],
-                "summary": "Test the auth service",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
