@@ -22,6 +22,12 @@ type RegisterRequest struct {
 	Password string `json:"password" binding:"required,min=6"`
 }
 
+var (
+	cookieDomain   = getEnvOrDefault("COOKIE_DOMAIN", "localhost")
+	cookieSecure   = parseBoolEnv("COOKIE_SECURE", "true")
+	cookieSameSite = http.SameSiteLaxMode
+)
+
 // @Summary      Register a new user
 // @Description  Register a new user with email, username, and password
 // @Tags         Register
@@ -95,9 +101,9 @@ func LoginHandler(c *gin.Context) {
 	}
 
 	log.Println("[Login] SUCCESS for", req.Email)
-
-	// Without frontend cookie
-	c.SetCookie("token", token, 3600*24, "/", "", false, true)
+	// Set cookie with proper domain and security settings
+	c.SetSameSite(cookieSameSite)
+	c.SetCookie("token", token, 3600*24, "/", cookieDomain, cookieSecure, true)
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
@@ -146,8 +152,8 @@ func ChangePasswordHandler(c *gin.Context) {
 // @Success      200  {object}  MessageResponse
 // @Router       /logout [post]
 func LogoutHandler(c *gin.Context) {
-	c.SetCookie("token", "", -1, "/", "localhost", true, true)
-	// without frontend cookie
-	// c.SetCookie("token", "", -1, "/", "", false, true)
+	// Clear the token cookie with proper domain and security settings
+	c.SetSameSite(cookieSameSite)
+	c.SetCookie("token", "", -1, "/", cookieDomain, cookieSecure, true)
 	c.JSON(http.StatusOK, MessageResponse{Message: "Logged out successfully"})
 }

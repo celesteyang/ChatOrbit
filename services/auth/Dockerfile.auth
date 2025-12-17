@@ -11,6 +11,7 @@ CMD ["./app"]
 ENV LOGGING_LEVEL=info
 ENV PORT=8089
 ENV MONGO_URL=mongodb://localhost:27017
+ENV ALLOWED_ORIGINS=http://localhost:8080,https://localhost,https://chatorbit-web-169178749730.asia-east1.run.app
 
 EXPOSE 8089
 CMD ["./app"]

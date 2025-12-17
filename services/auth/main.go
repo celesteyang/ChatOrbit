@@ -10,7 +10,6 @@ package main
 import (
 	"auth/docs"
 	"context"
-	"os"
 	"time"
 
 	"github.com/celesteyang/ChatOrbit/shared/logger"
@@ -68,14 +67,10 @@ func main() {
 	}
 	db := client.Database("chatorbit")
 	InitUserCollection(db)
-
+	allowedOrigins := parseAllowedOrigins()
 	// CORS 設定，允許前端跨域並攜帶 Cookie
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{
-			"http://localhost:8080",
-			"https://localhost",
-			"https://chatorbit-web-169178749730.asia-east1.run.app",
-		}, // 前端網址
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true, // 允許 Cookie
@@ -88,11 +83,4 @@ func main() {
 
 	logger.Debug("Debugging information for auth service")
 	r.Run()
-}
-
-func getEnvOrDefault(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
 }

@@ -9,4 +9,6 @@ COPY --from=builder /app/app .
 CMD ["./app"]
 
 ENV LOGGING_LEVEL=info
+ENV ALLOWED_ORIGINS=http://localhost:8080,https://localhost,https://chatorbit-web-169178749730.asia-east1.run.app
+
 EXPOSE 8088

@@ -10,7 +10,6 @@ package main
 import (
 	_ "chat/docs"
 	"context"
-	"os"
 	"time"
 
 	"github.com/celesteyang/ChatOrbit/shared/logger"
@@ -75,10 +74,18 @@ func main() {
 
 	logger.Info("Starting chat service")
 
+	allowedOrigins := parseAllowedOrigins()
+
 	r := gin.Default()
-	r.Use(cors.Default())
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     allowedOrigins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 	swagger.InitSwagger(r, "Chat Service")
 	hub := NewHub(redisClient)
+	upgrader = newUpgrader(allowedOrigins)
 	// hub instance run in a separate goroutine
 	go hub.Run()
 
@@ -95,11 +102,4 @@ func main() {
 	if err := r.Run(":" + servicePort); err != nil {
 		logger.Fatal("Failed to run server", zap.Error(err))
 	}
-}
-
-func getEnvOrDefault(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
 }

@@ -17,8 +17,31 @@ type createRoomRequest struct {
 	RoomID string `json:"room_id" binding:"required"`
 }
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool { return true },
+var upgrader websocket.Upgrader
+
+func newUpgrader(allowedOrigins []string) websocket.Upgrader {
+	origins := make([]string, 0, len(allowedOrigins))
+	for _, origin := range allowedOrigins {
+		trimmed := strings.TrimSpace(origin)
+		if trimmed != "" {
+			origins = append(origins, trimmed)
+		}
+	}
+
+	return websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			origin := r.Header.Get("Origin")
+			if origin == "" {
+				return true
+			}
+			for _, allowed := range origins {
+				if strings.EqualFold(origin, allowed) {
+					return true
+				}
+			}
+			return false
+		},
+	}
 }
 
 // Reads messages from the WebSocket connection and broadcasts them to the Hub.

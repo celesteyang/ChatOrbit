@@ -24,6 +24,9 @@ func init() {
 // Returns claims (user info) if valid, or error if invalid.
 func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if token.Method != jwt.SigningMethodHS256 {
+			return nil, errors.New("unexpected signing method")
+		}
 		return jwtSecret, nil
 	})
 	if err != nil || !token.Valid {
