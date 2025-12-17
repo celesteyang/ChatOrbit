@@ -36,7 +36,7 @@ func RegisterUser(ctx context.Context, email, username string, password string, 
 		return err
 	}
 	if exists {
-		return errors.New("Email already registered.")
+		return errors.New("email already registered")
 	}
 
 	// Password hashing
@@ -117,17 +117,17 @@ func LoginUser(ctx context.Context, email, password string) (string, error) {
 func ChangePassword(ctx context.Context, userID string, oldPassword, newPassword string) error {
 	uid, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return errors.New("Invalid user account ID.")
+		return errors.New("invalid user account ID")
 	}
 
 	user, err := FindUserByID(ctx, uid)
 	if err != nil {
-		return errors.New("User not found")
+		return errors.New("user not found")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(oldPassword))
 	if err != nil {
-		return errors.New("Old password incorrect.")
+		return errors.New("old password incorrect")
 	}
 
 	newHashed, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
