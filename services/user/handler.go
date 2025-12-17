@@ -20,6 +20,11 @@ import (
 // @Router       /user/{id} [get]
 func GetUserHandler(c *gin.Context) {
 	id := c.Param("id")
+	requesterID := c.GetString("user_id")
+	if requesterID == "" || requesterID != id {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
 	user, err := GetUserByID(context.Background(), id)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
